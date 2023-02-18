@@ -25,9 +25,11 @@ def predict():
         if df1_new.empty:
             return render_template('index.html',error = "Enter a valid ticker!!")
         start = dt.datetime(2010,1,1)
-        end = dt.datetime(2019,12,31)
+        end = dt.date.today()
 
         df = yf.download(params,start,end)
+        df = df.reset_index()
+        open, high, low, close, adj_close, volume = df['Open'].iloc[-1], df['High'].iloc[-1], df['Low'].iloc[-1], df['Close'].iloc[-1], df['Adj Close'].iloc[-1], df['Volume'].iloc[-1]
 
         data_training = pd.DataFrame(df['Close'][0:int(len(df)*0.70)])
         data_testing = pd.DataFrame(df['Close'][int(len(df)*0.70): int(len(df))])
@@ -49,16 +51,27 @@ def predict():
             
         x_test, y_test = np.array(x_test), np.array(y_test)
         y_predicted = model.predict(x_test)
-        scaler = scaler.scale_
-        scale_factor = 1/scaler[0]
-        y_predicted = y_predicted * scale_factor
-        y_test = y_test * scale_factor
+        y_predicted = scaler.inverse_transform(y_predicted)
+        y_test = y_test.reshape(-1,1)
+        y_test = scaler.inverse_transform(y_test)
+        year = dt.date.today().year
+        d = dt.datetime(year-4,1,2)
+        df2 = df[df['Date'] == d]
+        ind = df2.index[0]
         plt.clf()
+        plt.figure()
+        plt.plot(df['Close'][ind:int(len(df))])
+        plt.xlabel('Time')
+        plt.ylabel('Price')
+        plt.legend()
+        plt.savefig('C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/new_plot1.png')
+        
+        plt.figure()
         plt.plot(y_test, 'b', label = 'Original Price')
         plt.plot(y_predicted, 'r', label = 'Predicted Price')
         plt.xlabel('Time')
         plt.ylabel('Price')
         plt.legend()
         plt.savefig('C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/new_plot.png')
-        return render_template("result.html",name = 'new_plot', url ='/static/images/new_plot.png')
+        return render_template("result.html", url1 ='/static/images/new_plot.png', url2 ='/static/images/new_plot1.png', open = open, high = high, low = low, close = close, adj_close=adj_close, volume=volume)
 app.run(host='0.0.0.0') 

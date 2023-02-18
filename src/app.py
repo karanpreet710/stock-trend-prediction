@@ -1,14 +1,12 @@
 from flask import Flask,request,render_template
 import pandas as pd
 import numpy as np
-import tensorflow as tf
 import datetime as dt
 import yfinance as yf
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
-import keras
 from keras.models import load_model
 app = Flask(__name__)
 
@@ -22,6 +20,10 @@ def index():
 def predict():
     if request.method == 'POST':
         params = request.form['Name']
+        df1 = pd.read_csv('C:/Users/Dell/OneDrive/Desktop/DST project/src/Yahoo-Finance-Ticker-Symbols.csv')
+        df1_new = df1[df1['Ticker'] == params]
+        if df1_new.empty:
+            return render_template('index.html',error = "Enter a valid ticker!!")
         start = dt.datetime(2010,1,1)
         end = dt.datetime(2019,12,31)
 

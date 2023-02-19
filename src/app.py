@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import yfinance as yf
+import math
+from sklearn.metrics import mean_squared_error
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -54,10 +56,27 @@ def predict():
         y_predicted = scaler.inverse_transform(y_predicted)
         y_test = y_test.reshape(-1,1)
         y_test = scaler.inverse_transform(y_test)
+        rmse = math.sqrt(mean_squared_error(y_test,y_predicted))
         year = dt.date.today().year
-        d = dt.datetime(year-4,1,2)
+        d = dt.datetime(year-2,1,4)
         df2 = df[df['Date'] == d]
+        print(df2)
         ind = df2.index[0]
+
+        last_100_days = data_testing.tail(100)
+        inp_data = scaler.fit_transform(last_100_days)
+        x_forecast = []
+        for i in range(100, inp_data.shape[0]+1):
+            x_forecast.append(inp_data[i-100:i])
+        x_forecast = np.array(x_forecast)
+        for i in range (0,7):
+            y_forecast= model.predict(x_forecast)
+            temp = np.asarray(y_forecast[-1]).reshape(1,1)
+            x_temp = x_forecast[len(x_forecast)-1][1:100]
+            x_temp=np.append(x_temp,temp,axis=0)
+            x_temp = np.asarray(x_temp).reshape(1,100,1)
+            x_forecast = np.append(x_forecast,x_temp,axis=0)
+        y_forecast = scaler.inverse_transform(y_forecast)
         plt.clf()
         plt.figure()
         plt.plot(df['Close'][ind:int(len(df))])
@@ -73,5 +92,5 @@ def predict():
         plt.ylabel('Price')
         plt.legend()
         plt.savefig('C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/new_plot.png')
-        return render_template("result.html", url1 ='/static/images/new_plot.png', url2 ='/static/images/new_plot1.png', open = open, high = high, low = low, close = close, adj_close=adj_close, volume=volume)
+        return render_template("result.html", name = params, url1 ='/static/images/new_plot.png', url2 ='/static/images/new_plot1.png', open = open, high = high, low = low, close = close, adj_close=adj_close, volume=volume, rmse = rmse, forecast = y_forecast)
 app.run(host='0.0.0.0') 

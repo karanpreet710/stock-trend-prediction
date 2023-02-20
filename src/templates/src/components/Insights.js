@@ -8,7 +8,7 @@ const Insights = ({stockName}) => {
   }, [stockName]);
 
   async function getInsightsData() {
-    const data = await fetch(`/predict?Name=${stockName}`);
+    const data = await fetch(`http://localhost:5000/predict?Name=${stockName}`);
     const json = await data.json();
     setData(json);
     console.log(json);

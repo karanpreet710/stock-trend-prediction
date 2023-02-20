@@ -7,6 +7,7 @@ import numpy as np
 import datetime as dt
 import yfinance as yf
 import math
+import os
 from sklearn.metrics import mean_squared_error
 import matplotlib
 matplotlib.use('Agg')
@@ -77,6 +78,16 @@ def predict():
         x_temp = np.asarray(x_temp).reshape(1, 100, 1)
         x_forecast = np.append(x_forecast, x_temp, axis=0)
     y_forecast = scaler.inverse_transform(y_forecast)
+    now = dt.datetime.now()
+    now = now.strftime("%c")
+    now = str(now)
+    now = now.split()
+    now = '_'.join(now)
+    now = now.split(':')
+    now = '_'.join(now)
+    dir = 'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images'
+    for f in os.listdir(dir):
+        os.remove(os.path.join(dir, f))
     plt.clf()
     fig = plt.figure()
     plt.plot(df['Date'][ind:int(len(df))], df['Close'][ind:int(len(df))])
@@ -85,7 +96,7 @@ def predict():
     plt.grid()
     fig.autofmt_xdate()
     plt.savefig(
-        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/recent_trend.png')
+        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/recent_trend_'+now+'.png')
 
     ma100 = df.Close.rolling(100).mean()
     plt.figure()
@@ -99,7 +110,7 @@ def predict():
     plt.legend()
     fig.autofmt_xdate()
     plt.savefig(
-        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/ma100.png')
+        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/ma100_'+now+'.png')
 
     ma200 = df.Close.rolling(200).mean()
     plt.figure()
@@ -115,7 +126,7 @@ def predict():
     plt.legend()
     fig.autofmt_xdate()
     plt.savefig(
-        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/ma100_200.png')
+        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/ma100_200_'+now+'.png')
 
     fig = plt.figure()
     plt.plot(df['Date'][int(len(df)*0.70): int(len(df))],
@@ -128,13 +139,13 @@ def predict():
     plt.legend()
     fig.autofmt_xdate()
     plt.savefig(
-        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/actual_vs_predicted.png')
+        'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/actual_vs_predicted_'+now+'.png')
     return {
             'name':params, 
-            'url1':'http://localhost:5000/static/images/recent_trend.png', 
-            'url2':'http://localhost:5000/static/images/ma100.png', 
-            'url3':'http://localhost:5000/static/images/ma100_200.png', 
-            'url4':'http://localhost:5000/static/images/actual_vs_predicted.png', 
+            'url1':'http://localhost:5000/static/images/recent_trend_'+now+'.png', 
+            'url2':'http://localhost:5000/static/images/ma100_'+now+'.png', 
+            'url3':'http://localhost:5000/static/images/ma100_200_'+now+'.png', 
+            'url4':'http://localhost:5000/static/images/actual_vs_predicted_'+now+'.png', 
             'open':open,
             'high':high,
             'low':low, 

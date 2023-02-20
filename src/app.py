@@ -131,10 +131,10 @@ def predict():
         'C:/Users/Dell/OneDrive/Desktop/DST project/src/static/images/actual_vs_predicted.png')
     return {
             'name':params, 
-            'url1':'/static/images/recent_trend.png', 
-            'url2':'/static/images/ma100.png', 
-            'url3':'/static/images/ma100_200.png', 
-            'url4':'/static/images/actual_vs_predicted.png', 
+            'url1':'http://localhost:5000/static/images/recent_trend.png', 
+            'url2':'http://localhost:5000/static/images/ma100.png', 
+            'url3':'http://localhost:5000/static/images/ma100_200.png', 
+            'url4':'http://localhost:5000/static/images/actual_vs_predicted.png', 
             'open':open,
             'high':high,
             'low':low, 

@@ -9,6 +9,7 @@ const Insights = ({stockName, modelName}) => {
   const [data, setData] = useState(null);
   // const [errorPresent, setErrorPresent] = useState(false);
   useEffect(() => {
+    setData(null);
     getInsightsData();
   }, [stockName, modelName]);
 
@@ -74,11 +75,11 @@ const Insights = ({stockName, modelName}) => {
     />
     <div className="col-span-3 text-[#E96479] bg-[#F5E9CF] rounded-lg  text-center h-14 text-xl font-medium">
       <h2>{+(Math.round(data.forecast[0][0] + "e+2") + "e-2")}</h2>
-      <h3>TOMORROW'S {data.name} CLOSING PRICE BY LSTM</h3>
+      <h3>TOMORROW'S {data.name} CLOSING PRICE BY {modelName}</h3>
     </div>
     <div className="col-span-3  text-[#E96479] bg-[#F5E9CF] rounded-lg  text-center h-14 text-xl font-medium">
       <h2>{+(Math.round(data.rmse + "e+2") + "e-2")}</h2>
-      <h3>LSTM RMSE</h3>
+      <h3>{modelName} RMSE</h3>
     </div>
     <h1 className="col-span-6 text-center bg-[#F5E9CF] text-[#E96479] rounded-lg h-14 text-3xl font-medium py-2">
       Predicted {data.name} Price For The Next 7 Days

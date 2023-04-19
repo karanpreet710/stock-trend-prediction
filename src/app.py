@@ -7,6 +7,7 @@ import numpy as np
 import datetime as dt
 import yfinance as yf
 import math
+from statsmodels.tsa.arima.model import ARIMA
 import os
 from sklearn.metrics import mean_squared_error
 import matplotlib
@@ -19,6 +20,7 @@ model = load_model(
 @app.route("/predict")
 def predict():
     params = request.args.get('Name')
+    model_name = request.args.get('Model')
     df1 = pd.read_csv(
         'C:/Users/Dell/Desktop/DST project/src/Yahoo-Finance-Ticker-Symbols.csv')
     df1_new = df1[df1['Ticker'] == params]
@@ -26,18 +28,130 @@ def predict():
         return {
             'error':'Please enter a valid ticker!'
         }
-    start = dt.datetime(2010, 1, 1)
+    start = dt.datetime(2020, 1, 1)
     end = dt.date.today()
 
     df = yf.download(params, start, end)
     df = df.reset_index()
+
     open, high, low, close, adj_close, volume = df['Open'].iloc[-1], df['High'].iloc[-1], df[
         'Low'].iloc[-1], df['Close'].iloc[-1], df['Adj Close'].iloc[-1], df['Volume'].iloc[-1]
+    
+    if model_name == "ARIMA" :
+        data_training1 = pd.DataFrame(df['Close'][0:int(len(df)*0.70)])
+        data_testing1 = pd.DataFrame(
+            df['Close'][int(len(df)*0.70): int(len(df))])
+        training_data = data_training1.values
+        test_data = data_testing1.values
+        history = [x for x in training_data]
+        model_predictions = []
+        N_test_observations = len(test_data)
+        print(N_test_observations)
+        for time_point in range(N_test_observations):
+            model1 = ARIMA(history, order=(4,1,0))
+            model_fit = model1.fit()
+            output = model_fit.forecast()
+            yhat = output[0]
+            model_predictions.append(yhat)
+            true_test_value = test_data[time_point]
+            history.append(true_test_value)
+            
+        y_forecast = []
+        data1 = pd.DataFrame(df['Close'][0:len(df)])
+        data = data1.values
+        history1 = [x for x in data]
+        for i in range(0,7):
+            model2 = ARIMA(history1, order=(4,1,0))
+            model_fit = model2.fit()
+            output = model_fit.forecast()
+            yhat = output[0]
+            y_forecast.append([yhat])
+            history1.append([yhat])
+        print(y_forecast)
+        rmse = math.sqrt(mean_squared_error(test_data, model_predictions))
+        year = dt.date.today().year
+        d = dt.datetime(year-2, 1, 4)
+        df2 = df[df['Date'] == d]
+        ind = df2.index[0]
+        now = dt.datetime.now()
+        now = now.strftime("%c")
+        now = str(now)
+        now = now.split()
+        now = '_'.join(now)
+        now = now.split(':')
+        now = '_'.join(now)
+        dir = 'C:/Users/Dell/Desktop/DST project/src/static/images'
+        for f in os.listdir(dir):
+            os.remove(os.path.join(dir, f))
+        plt.clf()
+        fig = plt.figure()
+        plt.plot(df['Date'][ind:int(len(df))], df['Close'][ind:int(len(df))])
+        plt.xlabel('Time')
+        plt.ylabel('Price')
+        plt.grid()
+        fig.autofmt_xdate()
+        plt.savefig(
+            'C:/Users/Dell/Desktop/DST project/src/static/images/recent_trend_'+now+'.png')
 
+        ma100 = df.Close.rolling(100).mean()
+        fig = plt.figure()
+        plt.plot(df['Date'][0:int(len(df))], df['Close']
+                    [0:int(len(df))], label="Closing Price")
+        plt.plot(df['Date'][0:int(len(df))], ma100, 'r',
+                    label="100-day Moving Average (MA)")
+        plt.xlabel('Time')
+        plt.ylabel('Price')
+        plt.grid()
+        plt.legend()
+        fig.autofmt_xdate()
+        plt.savefig(
+            'C:/Users/Dell/Desktop/DST project/src/static/images/ma100_'+now+'.png')
+
+        ma200 = df.Close.rolling(200).mean()
+        fig = plt.figure()
+        plt.plot(df['Date'][0:int(len(df))], df['Close']
+                    [0:int(len(df))], label="Closing Price")
+        plt.plot(df['Date'][0:int(len(df))], ma100, 'r',
+                    label="100-day Moving Average (MA)")
+        plt.plot(df['Date'][0:int(len(df))], ma200, 'g',
+                    label="200-day Moving Average (MA)")
+        plt.xlabel('Time')
+        plt.ylabel('Price')
+        plt.grid()
+        plt.legend()
+        fig.autofmt_xdate()
+        plt.savefig(
+            'C:/Users/Dell/Desktop/DST project/src/static/images/ma100_200_'+now+'.png')
+
+        fig = plt.figure()
+        plt.plot(df['Date'][int(len(df)*0.70): int(len(df))],
+                    test_data, 'b', label='Original Price')
+        plt.plot(df['Date'][int(len(df)*0.70): int(len(df))],
+                    model_predictions, 'r', label='Predicted Price')
+        plt.xlabel('Time')
+        plt.ylabel('Price')
+        plt.grid()
+        plt.legend()
+        fig.autofmt_xdate()
+        plt.savefig(
+            'C:/Users/Dell/Desktop/DST project/src/static/images/actual_vs_predicted_'+now+'.png')
+        return {
+                'name':params, 
+                'url1':'http://localhost:5000/static/images/recent_trend_'+now+'.png', 
+                'url2':'http://localhost:5000/static/images/ma100_'+now+'.png', 
+                'url3':'http://localhost:5000/static/images/ma100_200_'+now+'.png', 
+                'url4':'http://localhost:5000/static/images/actual_vs_predicted_'+now+'.png', 
+                'open':open,
+                'high':high,
+                'low':low, 
+                'close':close,
+                'adj_close':adj_close,
+                'volume':int(volume),
+                'rmse':rmse,
+                'forecast':y_forecast
+            }
     data_training = pd.DataFrame(df['Close'][0:int(len(df)*0.70)])
-    data_testing = pd.DataFrame(
-        df['Close'][int(len(df)*0.70): int(len(df))])
-
+    data_testing = pd.DataFrame(df['Close'][int(len(df)*0.70): int(len(df))])
     scaler = MinMaxScaler(feature_range=(0, 1))
     data_training_array = scaler.fit_transform(data_training)
     past_100_days = data_training.tail(100)
@@ -99,7 +213,7 @@ def predict():
         'C:/Users/Dell/Desktop/DST project/src/static/images/recent_trend_'+now+'.png')
 
     ma100 = df.Close.rolling(100).mean()
-    plt.figure()
+    fig = plt.figure()
     plt.plot(df['Date'][0:int(len(df))], df['Close']
                 [0:int(len(df))], label="Closing Price")
     plt.plot(df['Date'][0:int(len(df))], ma100, 'r',
@@ -113,7 +227,7 @@ def predict():
         'C:/Users/Dell/Desktop/DST project/src/static/images/ma100_'+now+'.png')
 
     ma200 = df.Close.rolling(200).mean()
-    plt.figure()
+    fig = plt.figure()
     plt.plot(df['Date'][0:int(len(df))], df['Close']
                 [0:int(len(df))], label="Closing Price")
     plt.plot(df['Date'][0:int(len(df))], ma100, 'r',

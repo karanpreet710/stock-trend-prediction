@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import Insights from "./Insights";
 
 const Predict = () => {
 
   const [val, setVal] = useState(null);
+  const [val2, setVal2] = useState(null);
   const [flag, setFlag] = useState(false);
 
   return (
@@ -14,8 +14,10 @@ const Predict = () => {
         <h2 className="text-4xl font-bold p-8">Pls Enter A Stock Symbol</h2>
         <div className="flex items-center justify-start px-8">
           <input id="stock" className="bg-white border border-gray-400 text-black rounded-l-full rounded-r-full px-2 h-10 mr-2" placeholder="Company Stock Symbol" />
+          <input id="model" className="w-36 bg-white border border-gray-400 text-black rounded-l-full rounded-r-full px-2 h-10 mr-2" placeholder="LSTM or ARIMA" />
           <button onClick={() => {
             setVal(document.getElementById('stock').value);
+            setVal2(document.getElementById('model').value);
             setFlag(true);
             console.log(val);
           }} className="bg-green-100 rounded-l-full rounded-r-full p-2 m-2 w-28 text-xl">
@@ -24,7 +26,7 @@ const Predict = () => {
         </div>
       </div>
     </div>
-    { flag && <Insights stockName = {val}/>  }  
+    { flag && <Insights stockName = {val} modelName = {val2}/>  }  
     </>
   );
 };
